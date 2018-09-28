@@ -162,7 +162,7 @@ class CMainParams : public CChainParams
         bnProofOfWorkLimit      = ~uint256(0) >> 1;
         nLastPOWBlock           = 200; // Last Proof-of-Work block
         nModifierUpdateBlock    = 200;
-        nMinStakeAge            = 60 * 60 * 6; // 6 hours
+        nMinStakeAge            = 60 * 60 * 1; // 1 hour
         
         // MODIFIER_INTERVAL: time to elapse before new modifier is computed
         // MODIFIER_RATIO: ratio of group interval length between the last group and the first group
