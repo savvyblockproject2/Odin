@@ -61,14 +61,14 @@ static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data
  */
 static Checkpoints::MapCheckpoints mapCheckpoints =
     boost::assign::map_list_of
-    (    0, uint256("37b3b9b0c61335f9cdb82fccfe70a8f123c3b812e2c658ef42f691a150074b9b"));
+    (    0, uint256("0x31ca29566549e444cf227a0e2e067aed847c2acc541d3bbf9ca1ae89f4fd57d7"));
 
 static const Checkpoints::CCheckpointData data = {
     &mapCheckpoints,
-    1534859753, // * UNIX timestamp of last checkpoint block
+    1537275388, // * UNIX timestamp of last checkpoint block
     0,          // * total number of transactions between genesis and last checkpoint
                 //   (the tx=... number in the SetBestChain debug.log lines)
-    3600        // * estimated number of transactions per day after checkpoint
+    2880        // * estimated number of transactions per day after checkpoint
 };
 
 
@@ -78,11 +78,11 @@ static const Checkpoints::CCheckpointData data = {
  */
 static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
     boost::assign::map_list_of
-    ( 0, uint256("01519125dd84851de9437d61a24162610e8cba04d57f8a53765b7b0231e80866") );
+    (    0, uint256("0x2c4b736ccfcc296274c342092b1c6f9d82f0f036a94d57057ee0eed400372106"));
 
 static const Checkpoints::CCheckpointData dataTestnet = {
     &mapCheckpointsTestnet,
-    1535569392, // * UNIX timestamp of last checkpoint block
+    1537276237, // * UNIX timestamp of last checkpoint block
     0,          // * total number of transactions between genesis and last checkpoint
                 //   (the tx=... number in the SetBestChain debug.log lines)
     3600        // * estimated number of transactions per day after checkpoint
@@ -95,12 +95,11 @@ static const Checkpoints::CCheckpointData dataTestnet = {
  */
 static Checkpoints::MapCheckpoints mapCheckpointsRegtest =
     boost::assign::map_list_of
-    ( 0, uint256("57953c6db14b32b8fd1579c8aee7c2b7b2efd7ac9b15bbdf32fc96586cd69b5d") );
-    // (0, uint256("0x2b1a0f66712aad59ad283662d5b919415a25921ce89511d73019107e380485bf"));
+    (    0, uint256("0x4382c714d146c6fdde6042fbc7b85be7cc8ed474bb343ddd86736f3241b7ea7e"));
 
 static const Checkpoints::CCheckpointData dataRegtest = {
     &mapCheckpointsRegtest,
-    1535569429, // * UNIX timestamp of last checkpoint block
+    1537276691, // * UNIX timestamp of last checkpoint block
     0,          // * total number of transactions between genesis and last checkpoint
                 //   (the tx=... number in the SetBestChain debug.log lines)
     3600        // * estimated number of transactions per day after checkpoint
@@ -140,40 +139,55 @@ class CMainParams : public CChainParams
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 4-byte int at any alignment.
          */
-        pchMessageStart[0] = 0x19;
-        pchMessageStart[1] = 0x80;
-        pchMessageStart[2] = 0x55;
-        pchMessageStart[3] = 0x08;
+        pchMessageStart[0] = 0x52;
+        pchMessageStart[1] = 0x96;
+        pchMessageStart[2] = 0x79;
+        pchMessageStart[3] = 0x37;
 
-        vAlertPubKey = ParseHex("048e8c3d748796606a5b22ddb5bc7daf1db2f2428529c7836d41a897c675e8e247dade5476751ef5984e7da30e6b927c13a7a61197281b2d16275d81f63982fd6c");
+        vAlertPubKey = ParseHex("046820882af87cbd9d6728b5c386374229544f79d0afe23750aa217269b1b892fc2516d609d6757c1453412bfac500993782b18bde56b4b61d5e3fa2f8cce7a935");
 
         nEnforceBlockUpgradeMajority = 750;
         nRejectBlockOutdatedMajority = 950;
         nToCheckBlockUpgradeMajority = 1000;
 
         // Primary configurations
-        nDefaultPort            = 34221;// Main (mainnet) P2P Port
+        nDefaultPort            = 22100; // Main (mainnet) P2P Port
         nMaxReorganizationDepth = 100;
         nMinerThreads           = 0;
-        nTargetTimespan         = 1 * 60; // Odin: 1 day
-        nTargetSpacing          = 1 * 60;  // Odin: 1 minute
-        nMaturity               = 9;// Transaction maturity
+        nTargetTimespan         = 60 * 1; // Odin: 1 day
+        nTargetSpacing          = 60 * 1; // Odin: 1 minute
+        nMaturity               = 10; // Transaction maturity
         nMasternodeCountDrift   = 20;
-        nMaxMoneyOut            = 2000000000 * COIN;
+        nMaxMoneyOut            = 20000000 * COIN; // Max 20kk Ø per transaction
         bnProofOfWorkLimit      = ~uint256(0) >> 1;
-        nLastPOWBlock           = 500; // Last Proof-of-Work block
-        nModifierUpdateBlock    = 999999999;
+        nLastPOWBlock           = 200; // Last Proof-of-Work block
+        nModifierUpdateBlock    = 200;
+        nMinStakeAge            = 60 * 60 * 6; // 6 hours
+        
+        // MODIFIER_INTERVAL: time to elapse before new modifier is computed
+        // MODIFIER_RATIO: ratio of group interval length between the last group and the first group
+        nModifierInterval = 60;
+        nModifierIntervalRatio = 3;
+        
+        // BUDGET_PERCENT: % of block reward that goes to community proposals
+        // BUDGET_COLLATERAL: amount of Ø required to submit a community proposal
+        // MASTERNODE_REWARD: % of block reward that goes to masternodes
+        // MASTERNODE_COLLATERAL: amount of Ø required for a masternode
+        nBudgetPercent                = 10; 
+        nBudgetSubmissionCollateral   = 50;
+        nMasternodeRewardPercent      = 60;
+        nRequiredMasternodeCollateral = 25000 * COIN;
 
         // Zerocoin Configurations
         nZerocoinLastOldParams            = 99999999; // Updated to defer zerocoin v2 for further testing.
-        nMaxZerocoinSpendsPerTransaction  = 7; // Assume about 20kb each
-        nMinZerocoinMintFee               = 1 * CENT; //high fee required for zerocoin mints
-        nMintRequiredConfirmations        = 20; //the maximum amount of confirmations until accumulated in 19
+        nMaxZerocoinSpendsPerTransaction  = 7;        // Assume about 20kb each
+        nMinZerocoinMintFee               = 1 * CENT; // high fee required for zerocoin mints
+        nMintRequiredConfirmations        = 20;       // the maximum amount of confirmations until accumulated in 19
         nRequiredAccumulation             = 1;
-        nDefaultSecurityLevel             = 100; //full security level for accumulators
-        nZerocoinHeaderVersion            = 4; //Block headers must be this version once zerocoin is active
-        nBudgetFeeConfirmations           = 6; // Number of confirmations for the finalization fee
-        nZerocoinStartHeight              = 501;
+        nDefaultSecurityLevel             = 100;      // full security level for accumulators
+        nZerocoinHeaderVersion            = 4;        // Block headers must be this version once zerocoin is active
+        nBudgetFeeConfirmations           = 6;        // Number of confirmations for the finalization fee
+        nZerocoinStartHeight              = 143446;   // Aim for Yggdrasil Release
 
         /**
          * Build the genesis block. Note that the output of the genesis coinbase cannot
@@ -185,7 +199,7 @@ class CMainParams : public CChainParams
          *     CTxOut(nValue=50.00000000, scriptPubKey=0xA9037BAC7050C479B121CF)
          *   vMerkleTree: e0028e
          */
-        const char* pszTimestamp = "https://youtu.be/bCodVbucTbo";
+        const char* pszTimestamp = "http://odinblockchain.org/2018-09-18-odin-blockchain-genesis/";
 
         CMutableTransaction txNew;
         txNew.vin.resize(1);
@@ -198,24 +212,25 @@ class CMainParams : public CChainParams
         genesis.hashPrevBlock   = 0;
         genesis.hashMerkleRoot  = genesis.BuildMerkleTree();
         genesis.nVersion        = 1;
-        genesis.nTime           = 1534859753; // August 21, 2018 (date +%s)
+        genesis.nTime           = 1537275388; // Sept 18, 2018 (date +%s)
         genesis.nBits           = 0x207fffff;
-        genesis.nNonce          = 5;
-
-        printf("ODIN MainNet\n");
+        genesis.nNonce          = 0;
 
         hashGenesisBlock = genesis.GetHash();
 
-        assert(hashGenesisBlock == uint256("0x37b3b9b0c61335f9cdb82fccfe70a8f123c3b812e2c658ef42f691a150074b9b"));
-        assert(genesis.hashMerkleRoot == uint256("0xc0d5bcb3e4042c4b3068dcde64cfe1559987bdb7ea18394d9ca20ae5cc213253"));
+        assert(hashGenesisBlock == uint256("0x31ca29566549e444cf227a0e2e067aed847c2acc541d3bbf9ca1ae89f4fd57d7"));
+        assert(genesis.hashMerkleRoot == uint256("0x4e80fa44e71d494568525ac04c84c876f11124e59699ba3b59744e44fce232ac"));
 
-        vFixedSeeds.clear();
-        vSeeds.clear();
-
-        // vSeeds.push_back(CDNSSeedData("0", "142.93.128.134"));  // MN 0X
-        // vSeeds.push_back(CDNSSeedData("1", "178.128.229.107")); // MN 00
-        // vSeeds.push_back(CDNSSeedData("2", "142.93.177.49"));   // MN 01
-        // vSeeds.push_back(CDNSSeedData("3", "209.97.182.78"));   // MN 02
+        vSeeds.push_back(CDNSSeedData("nyc1.odinblockchain.org", "nyc1.odinblockchain.org")); // MN 01
+        vSeeds.push_back(CDNSSeedData("lon1.odinblockchain.org", "lon1.odinblockchain.org")); // MN 02
+        vSeeds.push_back(CDNSSeedData("fra1.odinblockchain.org", "fra1.odinblockchain.org")); // MN 03
+        vSeeds.push_back(CDNSSeedData("sfo1.odinblockchain.org", "sfo1.odinblockchain.org")); // MN 04
+        vSeeds.push_back(CDNSSeedData("blr1.odinblockchain.org", "blr1.odinblockchain.org")); // MN 05
+        vSeeds.push_back(CDNSSeedData("ams1.odinblockchain.org", "ams1.odinblockchain.org")); // MN 06
+        vSeeds.push_back(CDNSSeedData("tyo1.odinblockchain.org", "tyo1.odinblockchain.org")); // MN 07
+        vSeeds.push_back(CDNSSeedData("chi1.odinblockchain.org", "chi1.odinblockchain.org")); // MN 08
+        vSeeds.push_back(CDNSSeedData("syd1.odinblockchain.org", "syd1.odinblockchain.org")); // MN 09
+        vSeeds.push_back(CDNSSeedData("sgp1.odinblockchain.org", "sgp1.odinblockchain.org")); // MN 10
 
         // value prefixed to addresses that consist of public keys
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 115);
@@ -229,28 +244,29 @@ class CMainParams : public CChainParams
         /*
           four-byte prefixes for the so-called “stealth addresses” that got introduced in Bitcoin version 0.9, which allow fun things like addresses that can be used to generate new keys that can receive payments but not spend them. These two should have the same first byte but must differ in the other three bytes.
         */
-        base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x79)(0x81)(0x12)(0x36).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x27)(0x56)(0x18)(0x72).convert_to_container<std::vector<unsigned char> >();
 
-        base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x79)(0x22)(0x92)(0x36).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x27)(0x25)(0x67)(0x46).convert_to_container<std::vector<unsigned char> >();
 
         // 	BIP44 coin type is from https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-        base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x01)(0xbc).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x6f)(0x64)(0x69)(0x6e).convert_to_container<std::vector<unsigned char> >();
 
         bech32_hrp = "odin";
 
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
-        fMiningRequiresPeers = true;
-        fAllowMinDifficultyBlocks = false;
-        fDefaultConsistencyChecks = false;
-        fRequireStandard = true;
-        fMineBlocksOnDemand = false;
-        fSkipProofOfWorkCheck = false;
-        fTestnetToBeDeprecatedFieldRPC = false;
-        fHeadersFirstSyncingActive = false;
+        fMiningRequiresPeers            = true;
+        fAllowMinDifficultyBlocks       = false;
+        fDefaultConsistencyChecks       = false;
+        fRequireStandard                = true;
+        fMineBlocksOnDemand             = false;
+        fSkipProofOfWorkCheck           = false;
+        fTestnetToBeDeprecatedFieldRPC  = false;
+        fHeadersFirstSyncingActive      = false;
 
         nPoolMaxTransactions = 3;
-        strSporkKey = "04472764f5675aa5ae3c8f0b2b5d54bbd6d91b020a8dbd688350ed8646bc82f211f626c9db8bbdc1e51660f1630ffccca9736217cc6daa660c0154e459353a2a29";
+        vSporkKey = ParseHex("0431eabf7a9d86fb7403e4bab03645b55777801790b30f49858663222c096283965ce89e92c4089c045a66507c168bc8633042a369b73ad33073179c8a10d3d698");
+
 	      strObfuscationPoolDummyAddress = "oPjJyuGDrFfT3vmiv1SHzFf9bgFwheKxpx";
         //nStartMasternodePayments = genesis.nTime + 500; //Wed, 25 Jun 2014 20:36:16 GMT
 
@@ -276,56 +292,67 @@ public:
         networkID = CBaseChainParams::TESTNET;
         strNetworkID = "test";
 
-        pchMessageStart[0] = 0x63;
-        pchMessageStart[1] = 0x17;
-        pchMessageStart[2] = 0x37;
-        pchMessageStart[3] = 0x22;
+        pchMessageStart[0] = 0x92;
+        pchMessageStart[1] = 0x42;
+        pchMessageStart[2] = 0x25;
+        pchMessageStart[3] = 0x84;
 
-        vAlertPubKey = ParseHex("0402063889d534fb2b51e521c6f730586f86db8577cad991fb0f07c0c54cbc0cac32d8e42ca3cc6b98a76c2216e727ddb298b2489cf392dda006c551acf2f2e991");
+        vAlertPubKey = ParseHex("04b9fb4c92f20b633da21eb532edc892bf63b3c0460bd7addf53c7d8911e831201d75d8f12dc70fe82179ed9e09d86e506c09e609dd259b55d09ad35265872507c");
 
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
 
         // Primary configurations
-        nDefaultPort            = 34223;      // Main (testnet) P2P Port
-        nLastPOWBlock           = 5000;       // Last Proof-of-Work block
-        nMaturity               = 15;         // Transaction maturity
-        nMasternodeCountDrift   = 4;          // TODO
-        nMaxMoneyOut            = 43199500 * COIN; // TODO
-        nModifierUpdateBlock    = 51197;      // TODO
-        nRequiredAccumulation   = 1;          // TODO
-        nTargetTimespan         = 1 * 60;     // TODO
-        nTargetSpacing          = 1 * 10;     // Blocktime aim, ODIN: 1 minute
+        nDefaultPort            = 12100;    // Main (mainnet) P2P Port
+        nMaxReorganizationDepth = 100;
+        nMinerThreads           = 0;
+        nMaturity               = 5;        // Transaction maturity
+        nMasternodeCountDrift   = 4;
         bnProofOfWorkLimit      = ~uint256(0) >> 1;
+        nLastPOWBlock           = 200;      // Last Proof-of-Work block
+        nModifierUpdateBlock    = 200;
+        nMinStakeAge            = 60 * 60;  // 1 minute
+
+        // Modifier interval: time to elapse before new modifier is computed
+        // Set to 3-hour for production network and 20-minute for test network
+        // MODIFIER_INTERVAL: time to elapse before new modifier is computed
+        nModifierInterval = 60;
+        nModifierIntervalRatio = 3;
 
         // Zerocoin Configurations
-        nBudgetFeeConfirmations = 3;          // Number of confirmations for the finalization fee
-                                              // We have to make this very short here because we only 
-                                              // have a 8 block finalization window on testnet
-        nZerocoinLastOldParams  = 100000000;  // TODO - Updated to defer zerocoin v2 for further testing
-        nZerocoinStartHeight    = 201576;     // When zODIN becomes available
+        nZerocoinLastOldParams            = 99999999; // Updated to defer zerocoin v2 for further testing.
+        nMaxZerocoinSpendsPerTransaction  = 7;        // Assume about 20kb each
+        nMinZerocoinMintFee               = 1 * CENT; // high fee required for zerocoin mints
+        nMintRequiredConfirmations        = 20;       // the maximum amount of confirmations until accumulated in 19
+        nRequiredAccumulation             = 1;
+        nDefaultSecurityLevel             = 100;      // full security level for accumulators
+        nZerocoinHeaderVersion            = 4;        // Block headers must be this version once zerocoin is active
+        nBudgetFeeConfirmations           = 3;        // Number of confirmations for the finalization fee
+        nZerocoinStartHeight              = 339124;
 
         //! Test-net Genesis (nTime a bit in the future)
-        genesis.nTime           = 1535569392; // August 29, 2018 (date +%s)
+        genesis.hashMerkleRoot  = genesis.BuildMerkleTree();
+        genesis.nVersion        = 1;
+        genesis.nTime           = 1537276237; // Sept 18, 2018 (date +%s)
         genesis.nBits           = 0x207fffff;
         genesis.nNonce          = 0;
-        genesis.nVersion        = 1;
-        genesis.hashMerkleRoot  = genesis.BuildMerkleTree();
 
         // Set hash genesis block
         hashGenesisBlock = genesis.GetHash();
 
         // Ensure validity
-        assert(hashGenesisBlock == uint256("0x01519125dd84851de9437d61a24162610e8cba04d57f8a53765b7b0231e80866"));
-        assert(genesis.hashMerkleRoot == uint256("0xc0d5bcb3e4042c4b3068dcde64cfe1559987bdb7ea18394d9ca20ae5cc213253"));
+        assert(hashGenesisBlock == uint256("0x2c4b736ccfcc296274c342092b1c6f9d82f0f036a94d57057ee0eed400372106"));
+        assert(genesis.hashMerkleRoot == uint256("0x4e80fa44e71d494568525ac04c84c876f11124e59699ba3b59744e44fce232ac"));
 
         // Remove seeding nodes
         vFixedSeeds.clear();
         vSeeds.clear();
 
-        // Testnet odin addresses start with 'x' or 'y'
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 139);
+        vSeeds.push_back(CDNSSeedData("tor1-testnet.odinblockchain.org", "tor1-testnet.odinblockchain.org")); // MN 00
+
+        // Testnet odin addresses start with 'x'
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 137);
 
         // Testnet odin script addresses start with '8' or '9'
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 19);
@@ -346,15 +373,17 @@ public:
 
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
 
-        fMiningRequiresPeers = true;
-        fAllowMinDifficultyBlocks = true;
-        fDefaultConsistencyChecks = false;
-        fRequireStandard = false;
-        fMineBlocksOnDemand = false;
-        fTestnetToBeDeprecatedFieldRPC = true;
+        fMiningRequiresPeers            = true;
+        fAllowMinDifficultyBlocks       = true;
+        fDefaultConsistencyChecks       = false;
+        fRequireStandard                = false;
+        fMineBlocksOnDemand             = false;
+        fTestnetToBeDeprecatedFieldRPC  = true;
 
         nPoolMaxTransactions = 2;
-        strSporkKey = "04659d53bd8f7ad9d34a17281febedac754e5a6eb136142d3a9c6c0ea21b6ed7498ceb3d872eed00ae755f7aeadaeb1d9ab5e1a8f1e7efcd0ddcb39d4623c12790";
+
+        vSporkKey = ParseHex("046c501d82ed3624c1d902c96e265b7f59aeeeef075e3ae44f08cf0a73f5b8179a32acf37004bb0565215119626beae9cd85faa81e8817e56719d7181f0557397c");
+
         strObfuscationPoolDummyAddress = "PCYiHgGJJ6xGHqivmdZrYjRnhaYf6AJ2Mp";
         //nStartMasternodePayments = 1505224800; //Fri, 09 Jan 2015 21:05:58 GMT
     }
@@ -386,44 +415,32 @@ public:
         nToCheckBlockUpgradeMajority = 1000;
 
         // Primary configurations
-        nDefaultPort            = 34223;        // Main (regtest) P2P Port
-        nLastPOWBlock           = 999999999;    // Last Proof-of-Work block
-        nMaturity               = 0;            // Transaction maturity
-        nMasternodeCountDrift   = 20;           // TODO
-        nMaxMoneyOut            = 2000000000 * COIN; // TODO
-        nMaxReorganizationDepth = 100;          // TODO
-        nMinerThreads           = 1;            // TODO
-        nModifierUpdateBlock    = 999999999;    // TODO
-        nRequiredAccumulation   = 1;            // TODO
-        nTargetTimespan         = 24 * 60 * 60; // TODO
-        nTargetSpacing          = 1 * 60;       // Blocktime aim, ODIN: 1 minute
-        bnProofOfWorkLimit      = ~uint256(0) >> 1;
+        nMaturity               = 0;
+        nMinStakeAge            = 60; // 1 minute
 
         // Zerocoin Configurations
         nZerocoinLastOldParams  = 499;  // TODO - Updated to defer zerocoin v2 for further testing.
         nZerocoinStartHeight    = 100;  // When zODIN becomes available
 
-        //! Regtest-net Genesis
-        genesis.nTime           = 1535569429; // (August 29, 2018) date +%s
-        genesis.nBits           = 0x207fffff;
-        genesis.nNonce          = 0;
+        //! Regtest-net Genesis (nTime a bit in the future)
         genesis.hashMerkleRoot  = genesis.BuildMerkleTree();
-
-        // Set hash genesis block
-        hashGenesisBlock = genesis.GetHash();
+        genesis.nVersion        = 1;
+        genesis.nTime           = 1537276691; // Sept 18, 2018 (date +%s)
+        genesis.nBits           = 0x207fffff;
+        genesis.nNonce          = 6;
 
         // Set hash genesis block
         hashGenesisBlock = genesis.GetHash();
 
          // Ensure validity
-        assert(hashGenesisBlock == uint256("0x57953c6db14b32b8fd1579c8aee7c2b7b2efd7ac9b15bbdf32fc96586cd69b5d"));
-        assert(genesis.hashMerkleRoot == uint256("0xc0d5bcb3e4042c4b3068dcde64cfe1559987bdb7ea18394d9ca20ae5cc213253"));
+        assert(hashGenesisBlock == uint256("0x4382c714d146c6fdde6042fbc7b85be7cc8ed474bb343ddd86736f3241b7ea7e"));
+        assert(genesis.hashMerkleRoot == uint256("0x4e80fa44e71d494568525ac04c84c876f11124e59699ba3b59744e44fce232ac"));
 
         // Remove seeding nodes
         vFixedSeeds.clear();
         vSeeds.clear();
       
-        bech32_hrp = "odnt";
+        bech32_hrp = "odr";
 
         fMiningRequiresPeers = false;
         fAllowMinDifficultyBlocks = true;
@@ -431,8 +448,6 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = true;
         fTestnetToBeDeprecatedFieldRPC = false;
-
-        strSporkKey = "04866dc02c998b7e1ab16fe14e0d86554595da90c36acb706a4d763b58ed0edb1f82c87e3ced065c5b299b26e12496956b9e5f9f19aa008b5c46229b15477c875a";
     }
     const Checkpoints::CCheckpointData& Checkpoints() const
     {
@@ -451,7 +466,7 @@ public:
     {
         networkID = CBaseChainParams::UNITTEST;
         strNetworkID = "unittest";
-        nDefaultPort = 34224;
+        nDefaultPort = 12100;
         vFixedSeeds.clear(); //! Unit test mode doesn't have any fixed seeds.
         vSeeds.clear();      //! Unit test mode doesn't have any DNS seeds.
 

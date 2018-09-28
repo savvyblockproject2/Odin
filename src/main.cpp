@@ -88,8 +88,6 @@ bool fVerifyingBlocks = false;
 unsigned int nCoinCacheSize = 5000;
 unsigned int nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;
 bool fAlerts = DEFAULT_ALERTS;
-
-unsigned int nStakeMinAge = 3 * 60 * 60;
 int64_t nReserveBalance = 0;
 
 /** Fees smaller than this (in uODIN) are considered zero fee (for relaying and mining)
@@ -117,7 +115,7 @@ static void CheckBlockIndex();
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "DarkNet Signed Message:\n";
+const string strMessageMagic = "Huginn hath Signed Message:\n";
 
 // Internal stuff
 namespace
@@ -919,7 +917,7 @@ bool GetCoinAge(const CTransaction& tx, const unsigned int nTxTime, uint64_t& nC
         // Read block header
         CBlockHeader prevblock = pindex->GetBlockHeader();
 
-        if (prevblock.nTime + nStakeMinAge > nTxTime)
+        if (prevblock.nTime + Params().GetMinStakeAge() > nTxTime)
             continue; // only count coins meeting min age requirement
 
         if (nTxTime < prevblock.nTime) {
@@ -2152,71 +2150,65 @@ double ConvertBitsToDouble(unsigned int nBits)
     return dDiff;
 }
 
-int64_t GetBlockValue(int nHeight)
+int64_t GetBlockValue(int nHeight, bool fBudgetBlock)
 {
-  int64_t nSubsidy = 0;
+  /**
+   * ODIN Block Reward Structure:
+   * PoW Premine:   Block         0 -         200 = 495,000 Ø ~3 hours
+   * PoS Launch:    Block       201 -      14,601 =       5 Ø ~10 days
+   * Ragnarök:      Block    14,602 -      52,042 =     175 Ø ~26 days
+   * Valhalla:      Block    52,043 -     139,883 =      95 Ø ~61 days
+   * Y1 Yggdrasil:  Block   139,884 -     665,484 =      25 Ø ~365 days
+   * Y2 Midgard:    Block   665,485 -   1,192,526 =      20 Ø ~366 days
+   * Y3 Nidhogg:    Block 1,192,526 -             =      15 Ø ~365 days
+   * Y4 ONWARDS:    Block 1,192,526               =      15 Ø
+   * 
+   * PoW Schedule -  0% to proposals
+   * PoS Schedule - 10% to proposals for all phases starting in Ragnarök
+   * 90% distributed to Stake wallet and Masternode
+   * 
+   * 1 Day    =  ~1440 Blocks
+   * 1 Month  = ~43800 Blocks
+   * 
+   * ~1.4813x faster in initial blockchain growth
+   */
 
-  if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-    if (nHeight < 200 && nHeight > 0)
-      return 250000 * COIN;
+  int64_t nBudgetMultiplier = COIN;
+  if (!fBudgetBlock)
+    nBudgetMultiplier = COIN - (Params().GetBudgetPercent() * CENT);
+
+  CAmount nSubsidy = 15 * nBudgetMultiplier;
+
+  if (nHeight <= 200) {
+    // Premine
+    nSubsidy = 495000 * COIN;
+  } else if (nHeight >= 201 && nHeight <= 14601) {
+    // PoS Launch 10 days
+    nSubsidy = 5 * COIN;
+  } else if (nHeight >= 14602 && nHeight <= 52042) {
+    // Ragnarök 26 days
+    nSubsidy = 175 * nBudgetMultiplier;
+  } else if (nHeight >= 52043 && nHeight <= 139883) {
+    // Valhalla 61 days
+    nSubsidy = 95 * nBudgetMultiplier;
+  } else if (nHeight >= 139884 && nHeight <= 665484) {
+    // Yggdrasil 365 days
+    nSubsidy = 25 * nBudgetMultiplier;
+  } else if (nHeight >= 665485 && nHeight <= 1192525) {
+    // Midgard 366 days
+    nSubsidy = 20 * nBudgetMultiplier;
+  } else if (nHeight >= 1192526) {
+    // Nidhogg
+    nSubsidy = 15 * nBudgetMultiplier;
   }
 
-  if (nHeight< 1500) {
-    nSubsidy = 166667 * COIN;
-  } else if (nHeight >= 1500 && nHeight < 35000) {
-    nSubsidy = 20 * COIN;
-  } else if (nHeight >= 35000 && nHeight < 166400) {
-    nSubsidy = 116.530000 * COIN;
-  } else if (nHeight >= 166401 && nHeight < 297801) {
-    nSubsidy = 116.390000 * COIN;
-  } else if (nHeight >= 297802 && nHeight < 429202) {
-    nSubsidy = 113.650000 * COIN;
-  } else if (nHeight >= 429203 && nHeight < 560603) {
-    nSubsidy = 108.810000 * COIN;
-  } else if (nHeight >= 560604 && nHeight < 692004) {
-    nSubsidy = 102.430000 * COIN;
-  } else if (nHeight >= 692005 && nHeight < 823405) {
-    nSubsidy = 95.020000 * COIN;
-  } else if (nHeight >= 823406 && nHeight < 954806) {
-    nSubsidy = 87.040000 * COIN;
-  } else if (nHeight >= 954807 && nHeight < 1086207) { nSubsidy = 78.870000 * COIN; }
-  else if (nHeight >= 1086208 && nHeight < 1217608) { nSubsidy = 70.800000 * COIN; }
-  else if (nHeight >= 1217609 && nHeight < 1349009) { nSubsidy = 63.050000 * COIN; }
-  else if (nHeight >= 1349010 && nHeight < 1480410) { nSubsidy = 55.760000 * COIN; }
-  else if (nHeight >= 1480411 && nHeight < 1611811) { nSubsidy = 49.030000 * COIN; }
-  else if (nHeight >= 1611812 && nHeight < 1743212) { nSubsidy = 43.080000 * COIN; }
-  else if (nHeight >= 1743213 && nHeight < 1874613) { nSubsidy = 44.160000 * COIN; }
-  else if (nHeight >= 1874614 && nHeight < 2006014) { nSubsidy = 45.260000 * COIN; }
-  else if (nHeight >= 2006015 && nHeight < 2137415) { nSubsidy = 46.390000 * COIN; }
-  else if (nHeight >= 2137416 && nHeight < 2268816) { nSubsidy = 47.550000 * COIN; }
-  else if (nHeight >= 2268817 && nHeight < 2400217) { nSubsidy = 48.740000 * COIN; }
-  else if (nHeight >= 2400218 && nHeight < 2531618) { nSubsidy = 49.960000 * COIN; }
-  else if (nHeight >= 2531619 && nHeight < 2663019) { nSubsidy = 51.210000 * COIN; }
-  else if (nHeight >= 2663020 && nHeight < 2794420) { nSubsidy = 52.490000 * COIN; }
-  else if (nHeight >= 2794421 && nHeight < 2925821) { nSubsidy = 53.800000 * COIN; }
-  else if (nHeight >= 2925822 && nHeight < 3057222) { nSubsidy = 55.150000 * COIN; }
-  else if (nHeight >= 3057223 && nHeight < 3188623) { nSubsidy = 56.530000 * COIN; }
-  else if (nHeight >= 3188624 && nHeight < 3320024) { nSubsidy = 57.940000 * COIN; }
-  else if (nHeight >= 3320025 && nHeight < 3451425) { nSubsidy = 59.390000 * COIN; }
-  else if (nHeight >= 3451426 && nHeight < 3582826) { nSubsidy = 60.870000 * COIN; }
-  else if (nHeight >= 3582827 && nHeight < 3714227) { nSubsidy = 62.400000 * COIN; }
-  else if (nHeight >= 3714228 && nHeight < 3845628) { nSubsidy = 63.960000 * COIN; }
-  else if (nHeight >= 3845629 && nHeight < 3977029) { nSubsidy = 65.550000 * COIN; }
-  else if (nHeight >= 3977030 && nHeight < 4108430) { nSubsidy = 67.190000 * COIN; }
-  else if (nHeight >= 4108431 && nHeight < 4239831) { nSubsidy = 68.870000 * COIN; }
-  else {
-    nSubsidy = 0;
-  }
-  
-  LogPrintf("COIN=%d, Subsidy=%d\n", COIN, nSubsidy);
-
+  LogPrintf("GetBlockValue Subsidy=%d, CommunityBudget=%d\n", nSubsidy, Params().GetBudgetPercent());
   return nSubsidy;
 }
 
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount)
+int64_t GetMasternodePayment(CAmount nTotalBlockReward)
 {
-    int64_t ret = blockValue / 5 * 3;
-    return ret;
+  return (nTotalBlockReward / COIN) * (Params().GetMasternodeRewardPercent() * CENT);
 }
 
 bool IsInitialBlockDownload()
@@ -2349,8 +2341,10 @@ void static InvalidBlockFound(CBlockIndex* pindex, const CValidationState& state
         if (it != mapBlockSource.end() && State(it->second)) {
             CBlockReject reject = {state.GetRejectCode(), state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), pindex->GetBlockHash()};
             State(it->second)->rejects.push_back(reject);
-            if (nDoS > 0)
-                Misbehaving(it->second, nDoS);
+            if (nDoS > 0) {
+              LogPrintf("Misbehaving: InvalidBlockFound\n");
+              Misbehaving(it->second, nDoS);
+            }
         }
     }
     if (!state.CorruptionPossible()) {
@@ -3853,6 +3847,9 @@ bool ReconsiderBlock(CValidationState& state, CBlockIndex* pindex)
 
 CBlockIndex* AddToBlockIndex(const CBlock& block)
 {
+    //TODO:pixel
+    // LogPrintf(">>AddToBlockIndex hash=%s\n", block.GetHash().ToString().c_str());
+
     // Check for duplicate
     uint256 hash = block.GetHash();
     BlockMap::iterator it = mapBlockIndex.find(hash);
@@ -3899,10 +3896,15 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
         // ppcoin: compute stake modifier
         uint64_t nStakeModifier = 0;
         bool fGeneratedStakeModifier = false;
+        //TODO:pixel
+        // LogPrintf(">>ComputeNextStakeModifier %s\n", pindexNew->ToString().c_str());
+
         if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier))
             LogPrintf("AddToBlockIndex() : ComputeNextStakeModifier() failed \n");
+
         pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
         pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
+
         if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum))
             LogPrintf("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=%s \n", pindexNew->nHeight, boost::lexical_cast<std::string>(nStakeModifier));
     }
@@ -4185,38 +4187,42 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev)
 {
-    if (pindexPrev == NULL)
-        return error("%s : null pindexPrev for block %s", __func__, block.GetHash().ToString().c_str());
+  //TODO:pixel
+  // LogPrintf(">>CheckWork() block:%s\n", block.ToString().c_str());
 
-    unsigned int nBitsRequired = GetNextWorkRequired(pindexPrev, &block);
+  if (pindexPrev == NULL)
+      return error("%s : null pindexPrev for block %s", __func__, block.GetHash().ToString().c_str());
 
-    if (block.IsProofOfWork() && (pindexPrev->nHeight + 1 <= 68589)) {
-        double n1 = ConvertBitsToDouble(block.nBits);
-        double n2 = ConvertBitsToDouble(nBitsRequired);
+  unsigned int nBitsRequired = GetNextWorkRequired(pindexPrev, &block);
 
-        if (abs(n1 - n2) > n1 * 0.5)
-            return error("%s : incorrect proof of work (DGW pre-fork) - %f %f %f at %d", __func__, abs(n1 - n2), n1, n2, pindexPrev->nHeight + 1);
+  if (block.IsProofOfWork() && (pindexPrev->nHeight + 1 <= 68589)) {
+    double n1 = ConvertBitsToDouble(block.nBits);
+    double n2 = ConvertBitsToDouble(nBitsRequired);
 
-        return true;
-    }
-
-    if (block.nBits != nBitsRequired)
-        return error("%s : incorrect proof of work at %d", __func__, pindexPrev->nHeight + 1);
-
-    if (block.IsProofOfStake()) {
-        uint256 hashProofOfStake;
-        uint256 hash = block.GetHash();
-
-        // const int nHeight = (pindexPrev == NULL) ? 0 : pindexPrev->nHeight + 1;
-        if(!CheckProofOfStake(block, hashProofOfStake)) {
-            LogPrintf("WARNING: ProcessBlock(): check proof-of-stake failed for block %s\n", hash.ToString().c_str());
-            return false;
-        }
-        if(!mapProofOfStake.count(hash)) // add to mapProofOfStake
-            mapProofOfStake.insert(make_pair(hash, hashProofOfStake));
-    }
+    if (abs(n1 - n2) > n1 * 0.5)
+        return error("%s : incorrect proof of work (DGW pre-fork) - %f %f %f at %d", __func__, abs(n1 - n2), n1, n2, pindexPrev->nHeight + 1);
 
     return true;
+  }
+
+  if (block.nBits != nBitsRequired)
+    return error("%s : incorrect proof of work at %d", __func__, pindexPrev->nHeight + 1);
+
+  if (block.IsProofOfStake()) {
+    uint256 hashProofOfStake;
+    uint256 hash = block.GetHash();
+
+    // const int nHeight = (pindexPrev == NULL) ? 0 : pindexPrev->nHeight + 1;
+    if(!CheckProofOfStake(block, hashProofOfStake)) {
+      LogPrintf("WARNING: ProcessBlock(): check proof-of-stake failed for block %s\n", hash.ToString().c_str());
+      return false;
+    }
+
+    if(!mapProofOfStake.count(hash)) // add to mapProofOfStake
+      mapProofOfStake.insert(make_pair(hash, hashProofOfStake));
+  }
+
+  return true;
 }
 
 bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex* const pindexPrev)
@@ -5812,12 +5818,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             vRecv >> LIMITED_STRING(pfrom->strSubVer, 256);
             pfrom->cleanSubVer = SanitizeString(pfrom->strSubVer);
         }
+        // TODO no longer instaban
         // broken releases with wrong blockchain data
-        if (pfrom->cleanSubVer == "/ODIN Core:1.1.0/") {
-            LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 100); // instantly ban them because they have old/bad block data
-            return false;
-        }
+        // if (pfrom->cleanSubVer == "/ODIN Core:1.1.0/") {
+        //     LOCK(cs_main);
+        //     LogPrint("net", "instant ban, caught blocked wallet version: ODIN Core:1.1.0\n");
+        //     Misbehaving(pfrom->GetId(), 100); // instantly ban them because they have old/bad block data
+        //     return false;
+        // }
         if (!vRecv.empty())
             vRecv >> pfrom->nStartingHeight;
         if (!vRecv.empty())
@@ -5944,6 +5952,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (pfrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000)
             return true;
         if (vAddr.size() > 1000) {
+            LogPrintf("Misbehaving: Address older than 1000 %u\n", vAddr.size());
             Misbehaving(pfrom->GetId(), 20);
             return error("message addr size() = %u", vAddr.size());
         }
@@ -6006,6 +6015,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
+            LogPrintf("Misbehaving: Message > MAX_INV (%u > %u)\n", vInv.size(), MAX_INV_SZ);
             Misbehaving(pfrom->GetId(), 20);
             return error("message inv size() = %u", vInv.size());
         }
@@ -6070,6 +6080,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
+            LogPrintf("Misbehaving: Message(GETDATA) > MAX_INV (%u > %u)\n", vInv.size(), MAX_INV_SZ);
             Misbehaving(pfrom->GetId(), 20);
             return error("message getdata size() = %u", vInv.size());
         }
@@ -6260,6 +6271,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                         if (stateDummy.IsInvalid(nDos) && nDos > 0 && (!state.CorruptionPossible() || State(fromPeer)->fHaveWitness))
                         {
                             // Punish peer that gave us an invalid orphan tx
+                            LogPrintf("Misbehaving: Peer gave orphan TX DOS %d\n", nDos);
                             Misbehaving(fromPeer, nDos);
                             setMisbehaving.insert(fromPeer);
                             LogPrint("mempool", "   invalid orphan tx %s\n", orphanHash.ToString());
@@ -6323,8 +6335,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             if (state.GetRejectCode() < REJECT_INTERNAL)
                 pfrom->PushMessage(NetMsgType::REJECT, strCommand, state.GetRejectCode(),
                     state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash);
-            if (nDoS > 0 && (!state.CorruptionPossible() || State(pfrom->id)->fHaveWitness))
+            if (nDoS > 0 && (!state.CorruptionPossible() || State(pfrom->id)->fHaveWitness)) {
+                LogPrintf("Misbehaving: mempoolreject\n");
                 Misbehaving(pfrom->GetId(), nDoS);
+            }
         }
     }
 
@@ -6337,6 +6351,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > MAX_HEADERS_RESULTS) {
             LOCK(cs_main);
+            LogPrintf("Misbehaving: nCount > MAX_HEADERS_RESULT (%u > %u)\n", nCount, MAX_HEADERS_RESULTS);
             Misbehaving(pfrom->GetId(), 20);
             return error("headers message size = %u", nCount);
         }
@@ -6357,6 +6372,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             CValidationState state;
             if (pindexLast != NULL && header.hashPrevBlock != pindexLast->GetBlockHash()) {
                 LOCK(cs_main);
+                LogPrintf("Misbehaving: headerPREV != lastHASH\n");
                 Misbehaving(pfrom->GetId(), 20);
                 return error("non-continuous headers sequence");
             }
@@ -6367,8 +6383,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             if (!AcceptBlockHeader((CBlock)header, state, &pindexLast)) {
                 int nDoS;
                 if (state.IsInvalid(nDoS)) {
-                    if (nDoS > 0)
+                    if (nDoS > 0) {
+                        LogPrintf("Misbehaving:Blockheader invalid?\n");
                         Misbehaving(pfrom->GetId(), nDoS);
+                    }
                     std::string strError = "invalid header received " + header.GetHash().ToString();
                     return error(strError.c_str());
                 }
