@@ -171,7 +171,7 @@ platformstyle.h
 privacydialog.cpp
 privacydialog.h
 qrc_odin.cpp
-qrc_phore_locale.cpp
+qrc_odin_locale.cpp
 qvalidatedlineedit.cpp
 qvalidatedlineedit.h
 qvaluecombobox.cpp
