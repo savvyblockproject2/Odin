@@ -1,7 +1,8 @@
-## ODIN Official Wiki
+## Official Wiki knowledgebase
 =====================================
 
 https://github.com/odinblockchain/wiki/wiki
+
 
 ## Community
 =====================================
@@ -17,6 +18,7 @@ https://odinblockchain.org
 
 ## BCT Thread
 https://bitcointalk.org/index.php?topic=4798428
+
 
 ## Technical information
 =====================================
