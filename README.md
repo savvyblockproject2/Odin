@@ -1,26 +1,27 @@
-ODIN Core integration/staging repository
+## ODIN Official Wiki
+=====================================
+https://github.com/odinblockchain/wiki/wiki
+
+## Community
 =====================================
 
-[![Build Status](https://travis-ci.org/odinblockchain/Odin.svg?branch=master)](https://travis-ci.org/odinblockchain/Odin)
+## Discord
+https://discord.me/odinblockchain
 
-### Short Description Coming Soon
+## Twitter
+https://twitter.com/odinblockchain
 
-### Distribution Coming Soon
+## Blog
+https://odinblockchain.org
 
 ## BCT Thread
 https://bitcointalk.org/index.php?topic=4798428
 
-## Discord Community
-https://discord.me/odinblockchain
+## Technical information
+=====================================
 
-## Coin Specs
-### Specs Coming Soon
+## Coin specifications
+https://github.com/odinblockchain/wiki/wiki/Blockchain-Spec
 
-## PoS Rewards Breakdown
-### Specs Coming Soon
-
-## Development Budget
-### Budget Information Coming Soon
-
-## Community Bounties Budget
-### Budget Information Coming Soon
+## Proof of Stake rewards breakdown
+https://github.com/odinblockchain/wiki/wiki/ODIN-Blockchain--Rewards
